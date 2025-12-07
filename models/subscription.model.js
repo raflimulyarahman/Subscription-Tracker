@@ -64,7 +64,12 @@ const subscriptionSchema = new mongoose.Schema({
 
 
 // Auto-calculate renewal date if missing.
-subscriptionSchema.pre('save', function (next) {
+// NOTE: Fixed Issue - "next is not a function" error
+// Problem: Originally used next() callback which is deprecated in Mongoose 6.x+
+// Solution: Removed next parameter and next() call. Mongoose 6.x+ automatically 
+// handles synchronous hooks without requiring explicit next() callback.
+// For async hooks, use async/await instead of next() callback pattern.
+subscriptionSchema.pre('save', function () {
   if(!this.renewalDate) {
     const renewalPeriods = {
       daily: 1,
@@ -81,8 +86,6 @@ subscriptionSchema.pre('save', function (next) {
   if (this.renewalDate < new Date()) {
     this.status = 'expired';
   }
-
-  next();
 });
 
 const Subscription = mongoose.model('Subscription', subscriptionSchema);
